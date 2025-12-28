@@ -1,42 +1,65 @@
 import streamlit as st
-import joblib
 import numpy as np
-
-# Load model and scaler
-model = joblib.load("best_model.pkl")
-scaler = joblib.load("scaler.pkl")
-
-THRESHOLD = 0.35   # your tuned threshold
+import joblib
 
 st.title("Customer Churn Prediction")
 
-# ---- USER INPUT ----
+model = joblib.load("best_model.pkl")
+scaler = joblib.load("scaler.pkl")
+
+# ---------------- USER INPUTS ----------------
 age = st.number_input("Age", 10, 100, 40)
-gender = st.selectbox("Gender", ["Male","Female"])
+
+gender = st.selectbox("Gender", ["Male", "Female"])
+gender_val = 1 if gender == "Female" else 0
+
 monthly = st.number_input("Monthly Charges", 0.0, 200.0, 70.0)
 tenure = st.number_input("Tenure (months)", 0, 120, 12)
 
-gender = 1 if gender=="Female" else 0
+# Business inputs for original model
+contract = st.selectbox("Contract Type", 
+            ["Month-to-Month", "One-Year", "Two-Year"])
 
-# ---- PREPARE INPUT ----
-features = np.array([[age, gender, monthly, tenure]])
+internet = st.selectbox("Internet Service", 
+            ["No Internet", "DSL", "Fiber Optic"])
 
-# ---- SCALE FIX (IMPORTANT PART) ----
-required_features = scaler.n_features_in_
+tech = st.selectbox("Tech Support", 
+            ["No", "Yes"])
 
-current = features.shape[1]
+# --------- MANUAL FEATURE ENGINEERING ----------
+total_charges = monthly * tenure   # same as dataset behavior
 
-if current < required_features:
-    padding = np.zeros((1, required_features - current))
-    features = np.hstack((features, padding))
+# One-Hot Encoding (must match training)
+c_one = 1 if contract == "One-Year" else 0
+c_two = 1 if contract == "Two-Year" else 0
 
-# ---- SCALE ----
-features = scaler.transform(features)
+i_dsl = 1 if internet == "DSL" else 0
+i_fiber = 1 if internet == "Fiber Optic" else 0
 
-# ---- PREDICT ----
-proba = model.predict_proba(features)[0][1]
+t_yes = 1 if tech == "Yes" else 0
 
-if proba > THRESHOLD:
+# --------- FINAL FEATURE ORDER ---------------
+features = np.array([[
+    age,
+    gender_val,
+    monthly,
+    tenure,
+    total_charges,
+    c_one,
+    c_two,
+    i_dsl,
+    i_fiber,
+    t_yes
+]])
+
+# ---------- SCALE ----------
+features_scaled = scaler.transform(features)
+
+# ---------- PREDICT ----------
+proba = model.predict_proba(features_scaled)[0][1]
+
+st.write("### Prediction Result")
+if proba > 0.35:
     st.error(f"🚨 Churn Likely | Probability = {proba:.2f}")
 else:
-    st.success(f"😊 Customer Safe | Probability = {proba:.2f}")
+    st.success(f"🙂 Customer Safe | Probability = {proba:.2f}")
