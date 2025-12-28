@@ -3,6 +3,9 @@
 A Machine Learning project to **predict whether a customer is likely to churn (leave a service)** based on demographic, account, and service usage behavior.  
 Built using **Python, Scikit-Learn, SMOTE, Random Forest, and Streamlit** with live deployment.
 
+## 🚀 Live Demo
+🔗 **Try the App Here:**  
+https://customer-churn-prediction-q2nwe9gkjtyyg8tappgsxx7.streamlit.app/
 
 ## 🎯 Project Objective
 Telecom companies lose huge revenue when customers leave.  
